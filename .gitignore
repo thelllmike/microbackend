@@ -1,0 +1,14 @@
+# Ignore Python virtual environment
+venv/
+env/
+.env/
+# Ignore .h5 files
+*.h5
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+# Ignore __pycache__ folders
+__pycache__/
+# Ignore other common files
+*.py[cod]
+*.swp
+.DS_Store
