@@ -43,7 +43,16 @@ def get_wikipedia_info(predicted_class):
         about = page.summary
         
         # Extract different sections
-        articles = [link.title for link in page.links.values() if link.ns == 0][:3]  # Top 3 article links
+        articles = []
+        
+        # Fetch top related articles with their URLs
+        for link_title, link_info in page.links.items():
+            if link_info.ns == 0:  # Only consider main articles
+                full_url = f"https://en.wikipedia.org/wiki/{link_title.replace(' ', '_')}"
+                articles.append({"name": link_title, "url": full_url})
+                
+                if len(articles) >= 3:  # Limit to top 3 articles
+                    break
         
         key_research_topics = []
         uses = ""
@@ -97,7 +106,7 @@ async def predict(
             "predicted_class": predicted_class,
             "confidence": confidence,
             "about": wikipedia_info["about"],
-            "articles": wikipedia_info["articles"],
+            "articles": wikipedia_info["articles"],  # Now includes both name and URL
             "key_research_topics": wikipedia_info["key_research_topics"],
             "uses": wikipedia_info["uses"],
             "illnesses_caused": wikipedia_info["illnesses_caused"]
