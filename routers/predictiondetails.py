@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile 
 from sqlalchemy.orm import Session
 from database import get_db
 from crud.predict import create_prediction, get_prediction_by_id, get_predictions_by_user_id, update_prediction, delete_prediction
+from models.predict import Prediction
 from schemas.predict import Article, PredictionRequest, PredictionResponse
 
 router = APIRouter()
@@ -67,28 +68,61 @@ async def create_new_prediction(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Utility function to convert Prediction object to dict
+def serialize_prediction(prediction: Prediction) -> dict:
+    return {
+        "id": prediction.id,
+        "user_id": prediction.user_id,
+        "predicted_class": prediction.predicted_class,
+        "confidence": prediction.confidence,
+        "image_url": prediction.image_url,
+        "about": prediction.about,
+        "articles": [Article(**article).dict() if isinstance(article, dict) else article for article in prediction.articles or []],
+        "key_research_topics": prediction.key_research_topics or [],
+        "uses": prediction.uses,
+        "illnesses_caused": prediction.illnesses_caused,
+        "created_at": prediction.created_at,
+        "updated_at": prediction.updated_at
+    }
+
 @router.get("/predictions/{prediction_id}", response_model=dict)
 def read_prediction(prediction_id: int, db: Session = Depends(get_db)):
-    prediction = get_prediction_by_id(db, prediction_id)
-    if not prediction:
-        raise HTTPException(status_code=404, detail="Prediction not found")
-    return {"data": prediction}
+    try:
+        prediction = get_prediction_by_id(db, prediction_id)
+        if not prediction:
+            raise HTTPException(status_code=404, detail="Prediction not found")
+        return {"data": serialize_prediction(prediction)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/predictions/user/{user_id}", response_model=dict)
 def read_predictions_by_user(user_id: int, db: Session = Depends(get_db)):
-    predictions = get_predictions_by_user_id(db, user_id)
-    return {"data": predictions}
+    try:
+        predictions = get_predictions_by_user_id(db, user_id)
+        serialized_predictions = [serialize_prediction(pred) for pred in predictions]
+        return {"data": serialized_predictions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.put("/predictions/{prediction_id}", response_model=dict)
 def update_existing_prediction(prediction_id: int, data: dict, db: Session = Depends(get_db)):
-    updated_prediction = update_prediction(db, prediction_id, **data)
-    if updated_prediction is None:
-        raise HTTPException(status_code=404, detail="Prediction not found")
-    return {"message": "Prediction updated", "data": updated_prediction}
+    try:
+        updated_prediction = update_prediction(db, prediction_id, **data)
+        if updated_prediction is None:
+            raise HTTPException(status_code=404, detail="Prediction not found")
+        return {"message": "Prediction updated", "data": serialize_prediction(updated_prediction)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.delete("/predictions/{prediction_id}", response_model=dict)
 def delete_existing_prediction(prediction_id: int, db: Session = Depends(get_db)):
-    deleted_prediction = delete_prediction(db, prediction_id)
-    if deleted_prediction is None:
-        raise HTTPException(status_code=404, detail="Prediction not found")
-    return {"message": "Prediction deleted", "data": deleted_prediction}
+    try:
+        deleted_prediction = delete_prediction(db, prediction_id)
+        if deleted_prediction is None:
+            raise HTTPException(status_code=404, detail="Prediction not found")
+        return {"message": "Prediction deleted", "data": serialize_prediction(deleted_prediction)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
