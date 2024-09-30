@@ -15,6 +15,27 @@ async def create_new_prediction(
     db: Session = Depends(get_db)
 ):
     try:
+        # Handling 'articles' and ensuring it’s a list of Article dictionaries
+        articles_list = request.articles
+
+        # Convert Article objects to dictionaries if they aren't already
+        if isinstance(articles_list, str):
+            try:
+                articles_list = json.loads(articles_list)  # Convert JSON string to list of dictionaries
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=422, detail="Invalid JSON format for articles")
+        
+        # Ensuring all items are valid dictionaries for Article
+        articles_objects = [Article(**article) if isinstance(article, dict) else article for article in articles_list]
+
+        # Handling 'key_research_topics' similarly
+        key_research_topics_list = request.key_research_topics
+        if isinstance(key_research_topics_list, str):
+            try:
+                key_research_topics_list = json.loads(key_research_topics_list)  # Convert JSON string to list
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=422, detail="Invalid JSON format for key_research_topics")
+
         # Create the prediction entry in the database
         prediction = create_prediction(
             db=db,
@@ -23,24 +44,26 @@ async def create_new_prediction(
             confidence=request.confidence,
             image_url=request.image_url,
             about=request.about,
-            articles=[article.dict() for article in request.articles] if request.articles else [],
-            key_research_topics=request.key_research_topics if isinstance(request.key_research_topics, list) else [],
+            articles=[article.dict() for article in articles_objects],  # Convert Article objects to dicts
+            key_research_topics=key_research_topics_list,
             uses=request.uses,
             illnesses_caused=request.illnesses_caused
         )
 
-        # Ensure proper serialization for response
-        return PredictionResponse(
-            predicted_class=prediction.predicted_class,
-            confidence=prediction.confidence,
-            image_url=prediction.image_url,
-            about=prediction.about,
-            articles=[Article(**article) for article in prediction.articles],
-            key_research_topics=prediction.key_research_topics,
-            uses=prediction.uses,
-            illnesses_caused=prediction.illnesses_caused
-        )
+        # Return the serialized response
+        return {
+            "predicted_class": prediction.predicted_class,
+            "confidence": prediction.confidence,
+            "image_url": prediction.image_url,
+            "about": prediction.about,
+            "articles": [article.dict() for article in articles_objects],  # Ensure articles are dictionaries
+            "key_research_topics": key_research_topics_list,
+            "uses": prediction.uses,
+            "illnesses_caused": prediction.illnesses_caused
+        }
 
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
