@@ -90,7 +90,7 @@ def get_wikipedia_info(predicted_class):
 @router.post("/predict/")
 async def predict(
     file: UploadFile = File(...),
-    user_id: int = Form(...),  # Use Form to handle non-file parameters
+   
 ):
     try:
         contents = await file.read()

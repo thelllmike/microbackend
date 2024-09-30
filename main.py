@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import init_db
 
 # Import routers from the routers folder
-from routers import user, reviews, tickets, features, equipments, predict
+from routers import user, reviews, tickets, features, equipments, predict ,predictiondetails
 
 import logging
 
@@ -45,6 +45,7 @@ router_list = [
     (features.router, "/feature", ["feature"]),
     (equipments.router, "/equipment", ["equipment"]),
     (predict.router, "/predict", ["predict"]),
+    (predictiondetails.router, "/details", ["details"]),
 ]
 
 for router, prefix, tags in router_list:
