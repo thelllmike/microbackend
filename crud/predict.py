@@ -5,7 +5,7 @@ from schemas.predict import PredictionCreate, ArticleCreate
 def create_prediction(db: Session, prediction_data: PredictionCreate):
     # Create a new Prediction object
     prediction = Prediction(
-        user_id=1,  # Assuming the user_id comes from some logic
+        user_id=prediction_data.user_id,
         predicted_class=prediction_data.predicted_class,
         confidence=prediction_data.confidence,
         image_url=prediction_data.image_url,
@@ -53,4 +53,16 @@ def delete_prediction_by_id(db: Session, prediction_id: int):
     db.delete(prediction)
     db.commit()
     
-    return prediction
+    return 
+
+# Fetch all predictions for a user
+def get_predictions_by_user_id(db: Session, user_id: int):
+    return db.query(Prediction).filter(Prediction.user_id == user_id).all()
+
+# Fetch the 5 most recent predictions for a user by user_id
+def get_recent_predictions_by_user_id(db: Session, user_id: int, limit: int = 5):
+    return db.query(Prediction).filter(Prediction.user_id == user_id).order_by(Prediction.created_at.desc()).limit(limit).all()
+
+# Fetch the most recent prediction for a user by user_id
+def get_most_recent_prediction(db: Session, user_id: int):
+    return db.query(Prediction).filter(Prediction.user_id == user_id).order_by(Prediction.created_at.desc()).first()
