@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database import get_db
-from crud.predict import create_prediction, get_prediction_by_id
+from crud.predict import create_prediction, delete_prediction_by_id, get_prediction_by_id
 from schemas.predict import PredictionRequest, PredictionResponse
 
 router = APIRouter()
@@ -22,3 +22,10 @@ def read_prediction(prediction_id: int, db: Session = Depends(get_db)):
     if not prediction:
         raise HTTPException(status_code=404, detail="Prediction not found")
     return prediction
+
+@router.delete("/predictions/{prediction_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_prediction(prediction_id: int, db: Session = Depends(get_db)):
+    prediction = delete_prediction_by_id(db, prediction_id)
+    if not prediction:
+        raise HTTPException(status_code=404, detail="Prediction not found")
+    return None

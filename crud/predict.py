@@ -37,3 +37,20 @@ def get_predictions_by_user_id(db: Session, user_id: int):
 
 def get_prediction_by_id(db: Session, prediction_id: int):
     return db.query(Prediction).filter(Prediction.id == prediction_id).first()
+
+def delete_prediction_by_id(db: Session, prediction_id: int):
+    # Retrieve the prediction to be deleted
+    prediction = db.query(Prediction).filter(Prediction.id == prediction_id).first()
+
+    # If the prediction doesn't exist, return None
+    if not prediction:
+        return None
+
+    # Delete all associated articles
+    db.query(Article).filter(Article.prediction_id == prediction_id).delete()
+
+    # Delete the prediction
+    db.delete(prediction)
+    db.commit()
+    
+    return prediction
