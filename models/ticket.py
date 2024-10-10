@@ -13,4 +13,4 @@ class Ticket(Base):
     description = Column(Text, nullable=False)
     attachment_url = Column(String, nullable=True)  # URL for the attachment
 
-    user = relationship("User", back_populates="tickets")  # Relationship to User
+

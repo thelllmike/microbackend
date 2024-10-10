@@ -22,6 +22,5 @@ class User(Base):
 
     # Relationships
     reviews = relationship("Review", back_populates="user")
-    tickets = relationship("Ticket", back_populates="user")
     features = relationship("Feature", back_populates="user")
     equipments = relationship("Equipment", back_populates="user")

@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -16,6 +17,7 @@ class Article(ArticleBase):
         from_attributes = True
 
 class PredictionBase(BaseModel):
+    id: int
     user_id: int
     predicted_class: str
     confidence: float
@@ -24,6 +26,9 @@ class PredictionBase(BaseModel):
     key_research_topics: Optional[dict] = None
     uses: Optional[str] = None
     illnesses_caused: Optional[str] = None
+        # Add created_at and updated_at fields
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 class PredictionCreate(PredictionBase):
     articles: List[ArticleCreate]
