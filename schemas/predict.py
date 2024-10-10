@@ -17,7 +17,7 @@ class Article(ArticleBase):
         from_attributes = True
 
 class PredictionBase(BaseModel):
-    id: int
+    # id: int
     user_id: int
     predicted_class: str
     confidence: float
